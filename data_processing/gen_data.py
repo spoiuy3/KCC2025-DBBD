@@ -869,7 +869,7 @@ if __name__ == '__main__':
     if args.segment_type == "GT":
         processor = GenerateSceneGraph_GT(
             cfg, target_relationships, args.label_type)
-    elif args.segment_type == "InSeg":
+    elif args.segment_type == "INSEG":
         processor = GenerateSceneGraph_Dense(cfg, target_relationships, args.label_type)
     elif args.segment_type == "ORBSLAM":
         processor = GenerateSceneGraph_Sparse(cfg, target_relationships, args.label_type)
