@@ -57,66 +57,7 @@ if __name__ == '__main__':
     path_3RScan_ScanNet20 = os.path.join('data', '3RScan_ScanNet20')
     path_3RScan_3RScan160 = os.path.join('data', '3RScan_3RScan160')
 
-    '''Download color_align.zip'''
-    if False:
-        # Generate color_align.ply yourself (in case the link doesn't work anymore.)
-        # map color
-        logger_py.info('mapping color')
-        cmd = [
-            py_align_color,
-            "-c", args.config,
-        ]
-        if args.overwrite:
-            cmd += ['--overwrite']
-        run_python(cmd)
-        logger_py.info('done')
-    else:
-        # Download it from the server
-        # check file exist
-        download_unzip(
-            "https://www.campar.in.tum.de/public_datasets/2023_cvpr_wusc/color_align.zip",
-            args.overwrite)
-
-    '''calculate per entity occlution'''
-    try:
-        '''Download from server'''
-        download_unzip(
-            "https://www.campar.in.tum.de/public_datasets/2023_cvpr_wusc/2dgt.zip",
-            args.overwrite)
-    except:
-        pass
-    logger_py.info('calculate per entity occlution')
-    py_exe = os.path.join(
-        'data_processing', 'calculate_entity_occlution_ratio.py')
-    cmd = [py_exe, '-c', args.config, '--thread', str(args.thread)]
-    if args.overwrite:
-        cmd += ['--overwrite']
-    run_python(cmd)
-    logger_py.info('done')
-
-    '''build visibility graph'''
-    logger_py.info('build visibility graph')
-    py_exe = os.path.join('data_processing', 'make_visibility_graph_3rscan.py')
-    cmd = [py_exe, '-c', args.config]
-    if args.overwrite:
-        cmd += ['--overwrite']
-    # For label type: ScanNet20
-    run_python(cmd+['-l', 'scannet20', '-o', path_3RScan_ScanNet20])
-    # For label type 3RScan160
-    run_python(cmd+['-l', '3rscan160', '-o', path_3RScan_3RScan160])
-    logger_py.info('done')
-
-    '''extract multi-view image bounding box'''
-    logger_py.info('extract multi-view image bounding box')
-    py_exe = os.path.join('data_processing', 'extract_mv_box_image_3rscan.py')
-    cmd = [py_exe, '-c', args.config,
-           '--thread', str(args.thread//4),  # use fewer thread for this one
-           '-f', os.path.join(path_3RScan_3RScan160, define.NAME_VIS_GRAPH)]
-    if args.overwrite:
-        cmd += ['--overwrite']
-    run_python(cmd)
-    logger_py.info('done')
-
+    
     '''generate scene graph data for GT'''
     logger_py.info('generate scene graph data for GT')
     py_exe = os.path.join('data_processing', 'gen_data.py')
