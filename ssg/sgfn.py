@@ -114,7 +114,6 @@ class SGFN(nn.Module):
         else:
             models['rel_encoder'] = ssg.models.edge_encoder_list[self.cfg.model.edge_encoder.method](
                 cfg, device)
-        print("dim: ", node_feature_dim)
         if use_spatial:
             if self.cfg.model.spatial_encoder.method == 'fc':
                 models['spatial_encoder'] = torch.nn.Linear(
@@ -128,7 +127,6 @@ class SGFN(nn.Module):
         else:
             models['spatial_encoder'] = torch.nn.Identity()
             node_feature_dim += sptial_feature_dim
-        print("dim: ", node_feature_dim)
         cfg.model.node_feature_dim = node_feature_dim
 
         if cfg.model.gnn.method != 'none':
@@ -150,7 +148,6 @@ class SGFN(nn.Module):
                 classifier = ssg.models.classifier_list['cvr'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn':
-                print("dim: ", node_feature_dim)
                 classifier = ssg.models.classifier_list['vgg16'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn_res18':

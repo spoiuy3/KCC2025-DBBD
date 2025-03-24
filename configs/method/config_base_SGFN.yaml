@@ -3,7 +3,7 @@ model:
  multi_rel: false # multiple relationship 
  use_rgb: true
  use_normal: true
- use_spatial: true
+ use_spatial: false
  node_feature_dim: 256
  edge_feature_dim: 256
  edge_descriptor_dim: 11
