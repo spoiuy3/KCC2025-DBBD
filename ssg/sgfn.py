@@ -101,7 +101,7 @@ class SGFN(nn.Module):
                 # else:
                 #     node_feature_dim = cfg.model.gmu.memory_dim
                 #     node_clsifier = "res18" if cfg.model.node_classifier.method == 'basic' else cfg.model.node_classifier.method #default is res18
-                #     classifier = ssg.models.classifider_list[node_clsifier](in_channels=node_feature_dim, out_channels=num_obj_cls)
+                #     classifier = ssg.models.classifier_list[node_clsifier](in_channels=node_feature_dim, out_channels=num_obj_cls)
             else:
                 raise NotImplementedError()
             node_feature_dim = encoder.node_feature_dim
@@ -147,13 +147,13 @@ class SGFN(nn.Module):
         with_bn = cfg.model.node_classifier.with_bn
         if self.with_img_encoder:
             if img_encoder_method == 'cvr':
-                classifier = ssg.models.classifider_list['cvr'](
+                classifier = ssg.models.classifier_list['cvr'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn':
-                classifier = ssg.models.classifider_list['vgg16'](
+                classifier = ssg.models.classifier_list['vgg16'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn_res18':
-                classifier = ssg.models.classifider_list['res18'](
+                classifier = ssg.models.classifier_list['res18'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'gvcnn':
                 classifier = torch.nn.Identity()
@@ -165,7 +165,7 @@ class SGFN(nn.Module):
                 else:
                     node_feature_dim = cfg.model.gmu.memory_dim
                     node_clsifier = "res18" if cfg.model.node_classifier.method == 'basic' else cfg.model.node_classifier.method  # default is res18
-                    classifier = ssg.models.classifider_list[node_clsifier](
+                    classifier = ssg.models.classifier_list[node_clsifier](
                         in_channels=node_feature_dim, out_channels=num_obj_cls)
             else:
                 raise NotImplementedError()
