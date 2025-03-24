@@ -51,7 +51,7 @@ def get_schedular(cfg, optimizer, **args):
         return None
 
 
-def get_dataset(cfg, mode='train'):
+def get_dataset(cfg, args, mode='train'):
     # get multi_rel config from model and write it to data for convenient
     multi_rel = cfg.model.multi_rel
     cfg.data.multi_rel = multi_rel
@@ -59,7 +59,7 @@ def get_dataset(cfg, mode='train'):
         cfg.data.num_points_union = cfg.model.num_points_union
     if 'node_feature_dim' in cfg.model:
         cfg.data.node_feature_dim = cfg.model.node_feature_dim
-    return ssg.dataset.dataset_dict[cfg.data.input_type](cfg, mode=mode)
+    return ssg.dataset.dataset_dict[cfg.data.input_type](cfg, args, mode=mode)
 
 
 def get_dataset_inst(cfg, mode='test'):
