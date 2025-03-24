@@ -29,7 +29,6 @@ from PIL import Image
 from codeLib.common import run
 from pytictoc import TicToc
 from torch_geometric.data import HeteroData
-import ssg
 
 logger_py = logging.getLogger(__name__)
 
@@ -38,10 +37,9 @@ DRAW_BBOX_IMAGE = False
 
 
 class SGFNDataset (data.Dataset):
-    def __init__(self, config, arg, mode, **args):
+    def __init__(self, config, mode, **args):
         super().__init__()
         assert mode in ['train', 'validation', 'test']
-        config = ssg.load_config(arg)
         self._device = config.DEVICE
         path = config.data['path']
         self.config = config

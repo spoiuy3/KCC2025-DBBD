@@ -7,8 +7,6 @@ from ssg.checkpoints import CheckpointIO
 import cProfile
 import matplotlib
 import torch_geometric
-import torch.multiprocessing as mp
-mp.set_start_method('spawn', force=True)
 
 # disable GUI
 matplotlib.pyplot.switch_backend('agg')
@@ -21,7 +19,6 @@ logger_py = logging.getLogger(__name__)
 
 
 def main():
-    args = ssg.default_parser().parse_args()
     cfg = ssg.Parse()
 
     # Shorthands
@@ -45,8 +42,8 @@ def main():
 
         ''' create dataset and loaders '''
         logger_py.info('get dataset')
-        dataset_train = config.get_dataset(cfg, args, 'train')
-        dataset_val = config.get_dataset(cfg, args, 'validation')
+        dataset_train = config.get_dataset(cfg, 'train')
+        dataset_val = config.get_dataset(cfg, 'validation')
 
         logger_py.info('create loader')
         train_loader = torch_geometric.loader.DataLoader(
