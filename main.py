@@ -7,8 +7,6 @@ from ssg.checkpoints import CheckpointIO
 import cProfile
 import matplotlib
 import torch_geometric
-import torch.multiprocessing as mp
-mp.set_start_method('spawn', force=True)
 
 # disable GUI
 matplotlib.pyplot.switch_backend('agg')
