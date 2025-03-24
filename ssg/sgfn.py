@@ -114,7 +114,7 @@ class SGFN(nn.Module):
         else:
             models['rel_encoder'] = ssg.models.edge_encoder_list[self.cfg.model.edge_encoder.method](
                 cfg, device)
-
+        print("dim: ", node_feature_dim)
         if use_spatial:
             if self.cfg.model.spatial_encoder.method == 'fc':
                 models['spatial_encoder'] = torch.nn.Linear(
@@ -128,7 +128,7 @@ class SGFN(nn.Module):
         else:
             models['spatial_encoder'] = torch.nn.Identity()
             node_feature_dim += sptial_feature_dim
-
+        print("dim: ", node_feature_dim)
         cfg.model.node_feature_dim = node_feature_dim
 
         if cfg.model.gnn.method != 'none':
