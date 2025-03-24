@@ -38,7 +38,7 @@ DRAW_BBOX_IMAGE = False
 
 
 class SGFNDataset (data.Dataset):
-    def __init__(self, arg, mode, **args):
+    def __init__(self, config, arg, mode, **args):
         super().__init__()
         assert mode in ['train', 'validation', 'test']
         config = ssg.load_config(arg)
