@@ -59,7 +59,7 @@ def get_dataset(cfg, args, mode='train'):
         cfg.data.num_points_union = cfg.model.num_points_union
     if 'node_feature_dim' in cfg.model:
         cfg.data.node_feature_dim = cfg.model.node_feature_dim
-    return ssg.dataset.dataset_dict[cfg.data.input_type](cfg, args, mode=mode)
+    return ssg.dataset.dataset_dict[cfg.data.input_type](args, mode=mode)
 
 
 def get_dataset_inst(cfg, mode='test'):
