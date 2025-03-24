@@ -150,6 +150,7 @@ class SGFN(nn.Module):
                 classifier = ssg.models.classifier_list['cvr'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn':
+                print("dim: ", node_feature_dim)
                 classifier = ssg.models.classifier_list['vgg16'](
                     in_channels=node_feature_dim, out_channels=num_obj_cls)
             elif img_encoder_method == 'mvcnn_res18':
