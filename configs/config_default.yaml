@@ -155,7 +155,7 @@ logging:
  log_graph: True
 wandb:
  dry_run: false
- entity: 'spoiuy3'
+ entity: 'spoiuy3-kyung-hee-university'
  project: "3DSSG_GAT"
 # id: "001" # id will be set to name
  tags: ["ssg", "3dssg"]
