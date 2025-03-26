@@ -186,6 +186,10 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
         ''' 2. edge class loss '''
         if edge_cls is not None:
             self.calc_edge_loss(logs, edge_cls, gt_edge, self.w_edge_cls)
+            
+        ''' 3. multi-modal regularizer '''
+        # if 문으로 use_mm == true인 경우만
+        self.calc_mm_reg_loss()
 
         '''3. get metrics'''
         metrics = self.model.calculate_metrics(
@@ -219,6 +223,11 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
         #     print('has nan')
         return logs
         # return loss if eval_mode else loss['loss']
+        
+    def calc_mm_reg_loss(self, logs ):
+        logs['loss'] += 0
+        logs['loss_mm_reg'] = 0
+        pass
 
     def calc_node_loss(self, logs, node_cls_pred, node_cls_gt, weights=None):
         '''
