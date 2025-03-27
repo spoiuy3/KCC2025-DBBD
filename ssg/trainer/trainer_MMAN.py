@@ -23,7 +23,7 @@ from ssg.trainer.eval_inst import EvalInst
 logger_py = logging.getLogger(__name__)
 
 
-class Trainer_MANN(BaseTrainer, EvalInst):
+class Trainer_MMAN(BaseTrainer, EvalInst):
     def __init__(self, cfg, model, node_cls_names: list, edge_cls_names: list,
                  device=None,  **kwargs):
         super().__init__(device)

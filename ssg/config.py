@@ -108,7 +108,7 @@ def get_model(cfg, num_obj_cls, num_rel_cls):
             num_obj_cls=num_obj_cls,
             num_rel_cls=num_rel_cls,
             device=cfg.DEVICE).to(cfg.DEVICE)
-    elif cfg.model.method == 'mann':
+    elif cfg.model.method == 'mman':
         dataset = get_dataset(cfg, 'train')
         
         model = method_dict[cfg.model.method](
