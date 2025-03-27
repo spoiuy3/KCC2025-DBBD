@@ -75,6 +75,7 @@ if __name__ == '__main__':
     scan_ids = sorted(read_all_scan_ids(cfg.data.path_split))
 
     # download all required files
+    '''
     if args.download:
         logger_py.info('download dataset')
         download_data_3rscan(path_3rscan, path_3rscan_data)
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         cmd = r"""find . -name '*.zip' -exec sh -c 'base={};filename="${base%.*}"; unzip -o -d $filename {};' ';'   """
         run(cmd, path_3rscan_data)
         logger_py.info('done')
-
+    '''
     # Generate aligned instance ply
     logger_py.info('generate aligned instance ply')
     cmd = [
