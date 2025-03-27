@@ -5,7 +5,7 @@ Created on Tue Oct 12 18:44:20 2021
 
 @author: sc
 """
-from .trainer_SGFN import Trainer_SGFN, Trainer_FAN
+from .trainer_SGFN import Trainer_SGFN
 from .trainer_IMP import Trainer_IMP
 from .trainer_MANN import Trainer_MANN
 
