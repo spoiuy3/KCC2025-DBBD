@@ -189,7 +189,7 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
             
         ''' 3. multi-modal regularizer '''
         # if 문으로 use_mm == true인 경우만
-        self.calc_mm_reg_loss()
+        # self.calc_mm_reg_loss()
 
         '''3. get metrics'''
         metrics = self.model.calculate_metrics(
