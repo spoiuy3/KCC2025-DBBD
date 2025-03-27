@@ -1,5 +1,5 @@
 model:
- method: fan
+ method: sgpn
  multi_rel: true # multiple relationship 
  use_rgb: false
  use_normal: false

@@ -3,5 +3,3 @@ model:
  multi_rel: true # multiple relationship 
 wandb:
  tags: ["ssg", "3dssg",'full','l160', 'fan']
-gnn:
- method: fan
