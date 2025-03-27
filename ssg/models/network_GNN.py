@@ -20,6 +20,9 @@ from torch_scatter import scatter
 from codeLib.common import filter_args_create
 import ssg
 
+from typing import Optional, List, Dict
+import clip
+
 
 class TripletGCN(MessagePassing):
     def __init__(self, dim_node, dim_edge, dim_hidden, aggr='mean', with_bn=True):
@@ -316,7 +319,7 @@ class MSG_FAN(MessagePassing):
                  dim_node: int, dim_edge: int, dim_atten: int,
                  num_heads: int,
                  use_bn: bool,
-                 aggr='sum',
+                 aggr='max',
                  attn_dropout: float = 0.5,
                  flow: str = 'target_to_source'):
         super().__init__(aggr=aggr, flow=flow)
@@ -622,28 +625,53 @@ class FAN_GRU_2(torch.nn.Module):
 """ Here is SuYeon's code zone """
 class MSG_MMAN(MessagePassing):
     def __init__(self,
-                 dim_node: int, dim_edge: int, dim_atten: int,
-                 num_heads: int,
-                 use_bn: bool,
-                 aggr='sum',
+                 dim_node: int, 
+                 dim_edge: int, 
+                 dim_atten: int,
+                 dim_clip: int = 512,
+                 num_heads: int = 8,
+                 use_bn: bool = True,
+                 aggr: str = 'max',
                  attn_dropout: float = 0.5,
+                 node_class_names: List[str] = None,
+                 edge_class_names: List[str] = None,
+                 use_text_attention: bool = True,
                  flow: str = 'target_to_source'):
         super().__init__(aggr=aggr, flow=flow)
+        
+        self.node_class_names = node_class_names
+        self.edge_class_names = edge_class_names
+        self.use_text_attention = use_text_attention
+        
+        self.dim_node = dim_node
+        self.dim_edge = dim_edge
+        self.dim_atten = dim_atten
+        self.dim_clip = dim_clip
+        
         assert dim_node % num_heads == 0
         assert dim_edge % num_heads == 0
         assert dim_atten % num_heads == 0
+        
         self.dim_node_proj = dim_node // num_heads
         self.dim_edge_proj = dim_edge // num_heads
         self.dim_value_proj = dim_atten // num_heads
         self.num_head = num_heads
         self.temperature = math.sqrt(self.dim_edge_proj)
 
-        self.nn_att = MLP([self.dim_node_proj+self.dim_edge_proj, self.dim_node_proj+self.dim_edge_proj,
+        self.nn_att_3d = MLP([self.dim_node_proj+self.dim_edge_proj, 
+                           self.dim_node_proj+self.dim_edge_proj,
                            self.dim_edge_proj])
+        
+        self.nn_att_text = MLP([self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj, 
+                               self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj,
+                               self.dim_edge_proj])
+        
+        self.clip_encoder = CLIPTextEncoder(device=self.proj_q.weight.device)
 
         self.proj_q = build_mlp([dim_node, dim_node])
         self.proj_k = build_mlp([dim_edge, dim_edge])
         self.proj_v = build_mlp([dim_node, dim_atten])
+        self.proj_text = build_mlp([dim_clip, dim_edge], do_bn=use_bn)
 
         self.nn_edge = build_mlp([dim_node*2+dim_edge, (dim_node+dim_edge), dim_edge],
                                  do_bn=use_bn, on_last=False)
@@ -655,44 +683,89 @@ class MSG_MMAN(MessagePassing):
         self.update_node = build_mlp([dim_node+dim_atten, dim_node+dim_atten, dim_node],
                                      do_bn=use_bn, on_last=False)
 
-    def forward(self, x, edge_feature, edge_index):
-        return self.propagate(edge_index, x=x, edge_feature=edge_feature, x_ori=x)
+    def forward(self, data):
 
-    def message(self, x_i: Tensor, x_j: Tensor, edge_feature: Tensor) -> Tensor:
-        '''
-        x_i [N, D_N]
-        x_j [N, D_N]
-        '''
-        num_node = x_i.size(0)
-
+        x = data['node'].x
+        node_class_indices = data['node'].y
+        
+        edge_feature = data['node', 'to', 'node'].x
+        edge_class_indices = data['node', 'to', 'node'].y
+        
+        edge_index = data['node', 'to', 'node'].edge_index
+        
+        src_indices = edge_index[0]
+        dst_indices = edge_index[1]
+        
+        text_embeddings = []
+        for i in range(len(edge_class_indices)):
+            src_idx = src_indices[i]
+            dst_idx = dst_indices[i]
+            
+            src_class = self.node_class_names[node_class_indices[src_idx].item()]
+            dst_class = self.node_class_names[node_class_indices[dst_idx].item()]
+            edge_class = self.edge_class_names[edge_class_indices[i].item()]
+            
+            text_embedding = self.clip_encoder.get_text_embedding(src_class, edge_class, dst_class)
+            text_embeddings.append(text_embedding)
+        
+        text_embeddings = torch.stack(text_embeddings).to(x.device)
+        
+        proj_text_embeddings = self.proj_text(text_embeddings)
+        
+        node_feature, edge_feature, probs_3d, probs_text, kl_divs = self.propagate(
+            edge_index, x=x, edge_feature=edge_feature, 
+            text_embedding=proj_text_embeddings, x_ori=x)
+        
+        return node_feature, edge_feature, probs_3d, probs_text, kl_divs
+    
+    def message(self, x_i, x_j, edge_feature, text_embedding):
+        num_edges = x_i.size(0)
+        
         '''triplet'''
         triplet_feature = torch.cat([x_i, edge_feature, x_j], dim=1)
         triplet_feature = self.nn_edge(triplet_feature)
-
-        '''FAN'''
-        # proj
-        x_i = self.proj_q(x_i).view(
-            num_node, self.dim_node_proj, self.num_head)  # [N,D,H]
-        edge = self.proj_k(edge_feature).view(
-            num_node, self.dim_edge_proj, self.num_head)  # [M,D,H]
-        x_j = self.proj_v(x_j)
-        # est attention
-        att = self.nn_att(torch.cat([x_i, edge], dim=1))  # N, D, H
-        prob = torch.nn.functional.softmax(att/self.temperature, dim=1)
-        prob = self.dropout(prob)
-        value = prob.reshape_as(x_j)*x_j
-
-        return [value, triplet_feature, prob]
-
-    def aggregate(self, inputs: Tensor, index: Tensor, ptr: Optional[Tensor] = None,
-                  dim_size: Optional[int] = None) -> Tensor:
+        
+        q = self.proj_q(x_i).view(num_edges, self.dim_node_proj, self.num_head)  # ρ_i
+        k = self.proj_k(edge_feature).view(num_edges, self.dim_edge_proj, self.num_head)  # ρ_ij
+        v = self.proj_v(x_j)  # ρ_j
+        
+        t = text_embedding.view(num_edges, self.dim_edge_proj, self.num_head)  # ρ_text
+        
+        att_3d = self.nn_att_3d(torch.cat([q, k], dim=1))  # MLP_att(ρ_i || ρ_ij)
+        prob_3d = torch.nn.functional.softmax(att_3d/self.temperature, dim=1)
+        prob_3d = self.dropout(prob_3d)
+        value_3d = prob_3d.reshape_as(v) * v
+        
+        if self.use_text_attention:
+            att_text = self.nn_att_text(torch.cat([q, k, t], dim=1))  # MLP_att(ρ_i || ρ_ij || ρ_text)
+            prob_text = torch.nn.functional.softmax(att_text/self.temperature, dim=1)
+            prob_text = self.dropout(prob_text)
+            value_text = prob_text.reshape_as(v) * v
+        else:
+            prob_text = prob_3d
+            value_text = value_3d
+        
+        kl_div = torch.nn.functional.kl_div(
+            torch.nn.functional.log_softmax(prob_3d, dim=1),
+            torch.nn.functional.softmax(prob_text, dim=1),
+            reduction='none'
+        ).sum(dim=1).mean()
+        
+        return [value_3d, triplet_feature, prob_3d, prob_text, kl_div]
+    
+    def aggregate(self, inputs, index, ptr=None, dim_size=None):
         inputs[0] = scatter(inputs[0], index, dim=self.node_dim,
-                            dim_size=dim_size, reduce=self.aggr)
+                           dim_size=dim_size, reduce=self.aggr)
         return inputs
-
-    def update(self, x, x_ori):
-        x[0] = self.update_node(torch.cat([x_ori, x[0]], dim=1))
-        return x
+    
+    def update(self, inputs, x_ori):
+        updated_node = self.update_node(torch.cat([x_ori, inputs[0]], dim=1))
+        
+        prob_3d = inputs[2]
+        prob_text = inputs[3]
+        kl_div = inputs[4]
+        
+        return updated_node, inputs[1], prob_3d, prob_text, kl_div
     
 
 class MultiModalAttenNetworkLayers(torch.nn.Module):
@@ -706,19 +779,40 @@ class MultiModalAttenNetworkLayers(torch.nn.Module):
         self.drop_out = None
         if 'DROP_OUT_ATTEN' in kwargs:
             self.drop_out = torch.nn.Dropout(kwargs['DROP_OUT_ATTEN'])
+            
+        self.node_class_names = kwargs.get('node_class_names', [])
+        self.edge_class_names = kwargs.get('edge_class_names', [])
 
         for _ in range(self.num_layers):
-            self.gconvs.append(filter_args_create(MSG_MMAN, kwargs))
+            self.gconvs.append(MSG_MMAN(
+                dim_node=kwargs['dim_node'],
+                dim_edge=kwargs['dim_edge'],
+                dim_atten=kwargs['dim_atten'],
+                dim_clip=512,
+                num_heads=kwargs['num_heads'],
+                use_bn=kwargs['use_bn'],
+                aggr=kwargs['aggr'],
+                attn_dropout=kwargs.get('attn_dropout', 0.1),
+                node_class_names=self.node_class_names,
+                edge_class_names=self.edge_class_names,
+                use_text_attention=True,
+                flow=kwargs.get('flow', 'target_to_source')
+            ))
 
     def forward(self, data):
-        probs = list()
+        probs_3d_all = []
+        probs_text_all = []
+        kl_divs_all = []
+        
         node_feature = data['node'].x
         edge_feature = data['node', 'to', 'node'].x
-        edges_indices = data['node', 'to', 'node'].edge_index
+
         for i in range(self.num_layers):
             gconv = self.gconvs[i]
-            node_feature, edge_feature, prob = gconv(
-                node_feature, edge_feature, edges_indices)
+            node_feature, edge_feature, probs_3d, probs_text, kl_div = gconv(data)
+            
+            data['node'].x = node_feature
+            data['node', 'to', 'node'].x = edge_feature
 
             if i < (self.num_layers-1) or self.num_layers == 1:
                 node_feature = torch.nn.functional.relu(node_feature)
@@ -727,10 +821,46 @@ class MultiModalAttenNetworkLayers(torch.nn.Module):
                 if self.drop_out:
                     node_feature = self.drop_out(node_feature)
                     edge_feature = self.drop_out(edge_feature)
+                
+                data['node'].x = node_feature
+                data['node', 'to', 'node'].x = edge_feature
 
-            if prob is not None:
-                probs.append(prob.cpu().detach())
-            else:
-                probs.append(None)
-        return node_feature, edge_feature, probs
+            if probs_3d is not None:
+                probs_3d_all.append(probs_3d.detach())
+            
+            if probs_text is not None:
+                probs_text_all.append(probs_text.detach())
+                
+            if kl_div is not None:
+                kl_divs_all.append(kl_div.item())
+                
+        return node_feature, edge_feature, probs_3d_all, probs_text_all, kl_divs_all
     
+class CLIPTextEncoder:
+    def __init__(self, model_name="ViT-B/32", device="cuda" if torch.cuda.is_available() else "cpu"):
+        self.device = device
+        self.model, self.preprocess = clip.load(model_name, device=device)
+        self.model.eval()
+        
+        self.text_template = "a {object1} is {relation} {object2}."
+        
+        self.text_embedding_cache = {}
+        
+    def get_text_embedding(self, subject_class, relation_class, object_class):
+        cache_key = f"{subject_class}_{relation_class}_{object_class}"
+        
+        if cache_key in self.text_embedding_cache:
+            return self.text_embedding_cache[cache_key]
+        
+        text = self.text_template.format(
+            object1=subject_class, relation=relation_class, object2=object_class)
+        
+        with torch.no_grad():
+            text_tokens = clip.tokenize([text]).to(self.device)
+            text_features = self.model.encode_text(text_tokens)
+            
+        text_embedding = text_features[0] / text_features[0].norm()
+        
+        self.text_embedding_cache[cache_key] = text_embedding
+        
+        return text_embedding

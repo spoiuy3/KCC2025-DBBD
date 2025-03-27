@@ -19,5 +19,5 @@ gnn_list = {
     'imp': TripletIMP,
     'vgfm': TripletVGfM,
     'jointgnn': JointGNN,
-    'mman' : MultiModalAttenNetworkLayers,
+    'mman': MultiModalAttenNetworkLayers,
 }

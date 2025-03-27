@@ -14,6 +14,7 @@ logger_py = logging.getLogger(__name__)
 
 method_dict = {
     'sgfn': SGFN,
+    'fan': SGPN,
     'sgpn': SGPN,
     'imp': IMP,
     'jointsg': JointSG,
@@ -84,7 +85,7 @@ def get_model(cfg, num_obj_cls, num_rel_cls):
         device (device): pytorch device
         dataset (dataset): dataset
     '''
-    if cfg.model.method == 'sgfn' or cfg.model.method == 'sgpn' or cfg.model.method == 'jointsg':
+    if cfg.model.method == 'sgfn' or cfg.model.method == 'sgpn' or cfg.model.method == 'jointsg' or  cfg.model.method == 'fan':
         return method_dict[cfg.model.method](
             cfg=cfg,
             num_obj_cls=num_obj_cls,

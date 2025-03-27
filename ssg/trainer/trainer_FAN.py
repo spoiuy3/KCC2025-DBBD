@@ -23,7 +23,7 @@ from ssg.trainer.eval_inst import EvalInst
 logger_py = logging.getLogger(__name__)
 
 
-class Trainer_SGFN(BaseTrainer, EvalInst):
+class Trainer_FAN(BaseTrainer, EvalInst):
     def __init__(self, cfg, model, node_cls_names: list, edge_cls_names: list,
                  device=None,  **kwargs):
         super().__init__(device)
@@ -166,7 +166,17 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
         # print('gt_rel.sum():',gt_rel.sum())
 
         ''' make forward pass through the network '''
-        node_cls, edge_cls = self.model(data)
+        model_outputs = self.model(data)
+        
+        if isinstance(model_outputs, tuple) and len(model_outputs) >= 2:
+            if len(model_outputs) >= 5:  # 수정
+                node_cls, edge_cls, probs_3d, probs_text, kl_divs = model_outputs
+            else:  # 기존
+                node_cls, edge_cls = model_outputs[:2]
+                probs_3d, probs_text, kl_divs = None, None, None
+        else:
+            node_cls = model_outputs
+            edge_cls, probs_3d, probs_text, kl_divs = None, None, None, None
 
         ''' calculate loss '''
         logs['loss'] = 0
@@ -186,8 +196,21 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
         ''' 2. edge class loss '''
         if edge_cls is not None:
             self.calc_edge_loss(logs, edge_cls, gt_edge, self.w_edge_cls)
+            
+        ''' 3. attention regularization loss (KL divergence) '''
+        if kl_divs is not None and hasattr(self.cfg.training, 'lambda_attn_reg'):
+            if isinstance(kl_divs, list):
+                if len(kl_divs) > 0:
+                    attn_reg_loss = sum(kl_divs) / len(kl_divs)
+                else:
+                    attn_reg_loss = torch.tensor(0.0, device=self._device)
+            else:
+                attn_reg_loss = kl_divs
+                
+            logs['loss'] += self.cfg.training.lambda_attn_reg * attn_reg_loss
+            logs['loss_attn_reg'] = attn_reg_loss
 
-        '''3. get metrics'''
+        '''4. get metrics'''
         metrics = self.model.calculate_metrics(
             node_cls_pred=node_cls,
             node_cls_gt=gt_node,
@@ -203,7 +226,10 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
             data['node'].pd = node_cls.detach()
 
             if edge_cls is not None:
-                edge_cls = torch.sigmoid(edge_cls.detach())
+                if not self.cfg.model.multi_rel:
+                    edge_cls = torch.softmax(edge_cls.detach(), dim=1)
+                else:
+                    edge_cls = torch.sigmoid(edge_cls.detach())
                 data['node', 'to', 'node'].pd = edge_cls.detach()
             eval_tool.add(data,
                           #   node_cls,gt_node,
