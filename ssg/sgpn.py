@@ -93,22 +93,29 @@ class SGPN(nn.Module):
         '''edge feature'''
         if has_edge:
             data['node', 'to', 'node'].x = self.rel_encoder(rel_points)
-
+        
         '''Messsage Passing'''
-        if has_edge:
-            ''' GNN '''
-            probs = None
-            node_feature_ori = None
-            if not self.cfg.model.gnn.node_from_gnn:
-                node_feature_ori = data['node'].x
-            if hasattr(self, 'gnn') and self.gnn is not None:
-                gnn_nodes_feature, gnn_edges_feature, probs = \
-                    self.gnn(data)
+        if self.cfg.model.gnn.method == "triplet":
+            if has_edge and self.cfg.model.gnn.num_layers > 0:
+                gcn_obj_feature, gcn_rel_feature = self.gnn(
+                    data['node'].x, data['node', 'to', 'node'].x, node_edges)
+                data['node'].x = gcn_obj_feature
+                data['node', 'to', 'node'].x = gcn_rel_feature
+        else:
+            if has_edge:
+                ''' GNN '''
+                probs = None
+                node_feature_ori = None
+                if not self.cfg.model.gnn.node_from_gnn:
+                    node_feature_ori = data['node'].x
+                if hasattr(self, 'gnn') and self.gnn is not None:
+                    gnn_nodes_feature, gnn_edges_feature, probs = \
+                        self.gnn(data)
 
-                data['node'].x = gnn_nodes_feature
-                data['node', 'to', 'node'].x = gnn_edges_feature
-            if not self.cfg.model.gnn.node_from_gnn:
-                data['node'].x = node_feature_ori
+                    data['node'].x = gnn_nodes_feature
+                    data['node', 'to', 'node'].x = gnn_edges_feature
+                if not self.cfg.model.gnn.node_from_gnn:
+                    data['node'].x = node_feature_ori
                 
         '''Classification'''
         # Node
