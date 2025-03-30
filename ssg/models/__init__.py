@@ -1,7 +1,6 @@
 from . import edge_encoder
 from .node_encoder import node_encoder_list
 from .classifier import classifier_list
-from .network_GNN import GraphEdgeAttenNetworkLayers,FAN_GRU,FAN_GRU_2, JointGNN,TripletGCNModel,TripletIMP,TripletVGfM
 from .network_GNN import *
 
 edge_encoder_list = {
@@ -20,4 +19,5 @@ gnn_list = {
     'vgfm': TripletVGfM,
     'jointgnn': JointGNN,
     'mman': MultiModalAttenNetworkLayers,
+    'mman_edge_update': MultiModalAttenNetworkLayers_Edge_Update,
 }
