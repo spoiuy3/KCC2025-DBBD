@@ -82,36 +82,43 @@ class SGPN(nn.Module):
         obj_points = data['node'].pts
         rel_points = data['edge'].pts
         node_edges = data['node', 'to', 'node'].edge_index
-
+        
         has_edge = node_edges.nelement() > 0
         if has_edge and node_edges.shape[0] != 2:
             node_edges = node_edges.t().contiguous()
 
-        obj_feature = self.obj_encoder(obj_points)
+        '''node feature'''
+        data['node'].x = self.obj_encoder(obj_points)
+        
+        '''edge feature'''
         if has_edge:
-            rel_feature = self.rel_encoder(rel_points)
+            data['node', 'to', 'node'].x = self.rel_encoder(rel_points)
 
-        probs = None
-        if has_edge and self.cfg.model.gnn.num_layers > 0:
-            gcn_obj_feature, gcn_rel_feature = self.gnn(
-                obj_feature, rel_feature, node_edges)
+        '''Messsage Passing'''
+        if has_edge:
+            ''' GNN '''
+            probs = None
+            node_feature_ori = None
+            if not self.cfg.model.gnn.node_from_gnn:
+                node_feature_ori = data['node'].x
+            if hasattr(self, 'gnn') and self.gnn is not None:
+                gnn_nodes_feature, gnn_edges_feature, probs = \
+                    self.gnn(data)
 
-            if self.cfg.model.gnn.node_from_gnn:
-                obj_cls = self.obj_predictor(gcn_obj_feature)
-            else:
-                obj_cls = self.obj_predictor(obj_feature)
-            rel_cls = self.rel_predictor(gcn_rel_feature)
+                data['node'].x = gnn_nodes_feature
+                data['node', 'to', 'node'].x = gnn_edges_feature
+            if not self.cfg.model.gnn.node_from_gnn:
+                data['node'].x = node_feature_ori
+                
+        '''Classification'''
+        # Node
+        node_cls = self.obj_predictor(data['node'].x)
+        # Edge
+        if has_edge:
+            edge_cls = self.rel_predictor(data['node', 'to', 'node'].x)
         else:
-            obj_cls = self.obj_predictor(obj_feature)
-            if has_edge:
-                rel_cls = self.rel_predictor(rel_feature)
-            else:
-                rel_cls = None
-
-        # if return_meta_data:
-        #     return obj_cls, rel_cls, obj_feature, rel_feature, gcn_obj_feature, gcn_rel_feature, probs
-        # else:
-        return obj_cls, rel_cls
+            edge_cls = None
+        return node_cls, edge_cls
 
     def calculate_metrics(self, **args):
         outputs = {}
