@@ -666,7 +666,7 @@ class MSG_MMAN(MessagePassing):
                                self.dim_node_proj+self.dim_edge_proj,
                                self.dim_edge_proj])
         
-        self.clip_encoder = CLIPTextEncoder(device=self.proj_q.weight.device)
+        self.clip_encoder = CLIPTextEncoder()
 
         self.proj_q = build_mlp([dim_node, dim_node])
         self.proj_k = build_mlp([dim_edge, dim_edge])
@@ -1044,7 +1044,7 @@ class MSG_MMAN_Edge_Update(MessagePassing):
                                self.dim_node_proj+self.dim_edge_proj,
                                self.dim_edge_proj])
         
-        self.clip_encoder = CLIPTextEncoder(device=self.proj_q.weight.device)
+        self.clip_encoder = CLIPTextEncoder()
 
         self.proj_q = build_mlp([dim_node, dim_node])
         self.proj_k = build_mlp([dim_edge, dim_edge])
