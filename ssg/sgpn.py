@@ -29,13 +29,25 @@ class SGPN(nn.Module):
             cfg, device)
 
         # if cfg.model.gnn.method != 'none':
-        models['gnn'] = ssg.models.gnn_list[cfg.model.gnn.method](
-            num_layers=cfg.model.gnn.num_layers,
-            dim_node=cfg.model.node_feature_dim,
-            dim_edge=cfg.model.edge_feature_dim,
-            dim_hidden=cfg.model.gnn.hidden_dim,
-            with_bn=cfg.model.gnn.with_bn
-        )
+        if cfg.model.gnn.method == 'triplet':
+            models['gnn'] = ssg.models.gnn_list[cfg.model.gnn.method](
+                num_layers=cfg.model.gnn.num_layers,
+                dim_node=cfg.model.node_feature_dim,
+                dim_edge=cfg.model.edge_feature_dim,
+                dim_hidden=cfg.model.gnn.hidden_dim,
+                with_bn=cfg.model.gnn.with_bn
+            )
+        else:
+            models['gnn'] = ssg.models.gnn_list[cfg.model.gnn.method](
+                dim_node=cfg.model.node_feature_dim,
+                dim_edge=cfg.model.edge_feature_dim,
+                dim_atten=cfg.model.gnn.hidden_dim,
+                num_layers=cfg.model.gnn.num_layers,
+                num_heads=cfg.model.gnn.num_heads,
+                aggr='max',
+                DROP_OUT_ATTEN=cfg.model.gnn.drop_out,
+                use_bn=False
+            )
 
         with_bn = cfg.model.node_classifier.with_bn
         models['obj_predictor'] = PointNetCls(num_obj_cls, in_size=node_feature_dim,
