@@ -125,7 +125,10 @@ class SGPN(nn.Module):
                 edge_cls = self.rel_predictor(data['node', 'to', 'node'].x)
             else:
                 edge_cls = None
-            return node_cls, edge_cls, kl_divs
+            if kl_divs != None:
+                return node_cls, edge_cls, kl_divs
+            else:
+                return node_cls, edge_cls
         else:
             if has_edge:
                 ''' GNN '''
