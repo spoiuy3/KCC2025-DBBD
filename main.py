@@ -20,9 +20,8 @@ logger_py = logging.getLogger(__name__)
 
 
 def main():
-    
+    cfg = ssg.Parse()
     if cfg.MODE == 'train':
-        cfg = ssg.Parse()
 
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -124,11 +123,10 @@ def main():
         '''use CPU for memory issue'''
         # cfg.DEVICE = torch.device("cpu")
 
-        cfg = ssg.Parse()
-
         # Shorthands
         out_dir = os.path.join(cfg['training']['out_dir'], cfg.name)
-
+        print(out_dir)
+        
         # set random seed
         codeLib.utils.util.set_random_seed(cfg.SEED)
 
