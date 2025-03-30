@@ -29,7 +29,7 @@ class SGPN(nn.Module):
             cfg, device)
 
         # if cfg.model.gnn.method != 'none':
-        models['gnn'] = ssg.models.gnn_list['triplet'](
+        models['gnn'] = ssg.models.gnn_list[cfg.model.gnn.method](
             num_layers=cfg.model.gnn.num_layers,
             dim_node=cfg.model.node_feature_dim,
             dim_edge=cfg.model.edge_feature_dim,
