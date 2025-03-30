@@ -102,9 +102,11 @@ class SGPN(nn.Module):
                 data['node'].x = gcn_obj_feature
                 data['node', 'to', 'node'].x = gcn_rel_feature
         elif self.cfg.model.gnn.method == "mman" or "mman_edge_update":
+            probs_3d = None
+            probs_text = None
+            kl_divs = None
             if has_edge:
                 ''' GNN '''
-                probs = None
                 node_feature_ori = None
                 if not self.cfg.model.gnn.node_from_gnn:
                     node_feature_ori = data['node'].x
