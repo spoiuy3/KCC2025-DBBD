@@ -662,8 +662,8 @@ class MSG_MMAN(MessagePassing):
                            self.dim_node_proj+self.dim_edge_proj,
                            self.dim_edge_proj])
         
-        self.nn_att_text = MLP([self.dim_node_proj+self.dim_edge_proj, 
-                               self.dim_node_proj+self.dim_edge_proj,
+        self.nn_att_text = MLP([self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj, 
+                               self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj,
                                self.dim_edge_proj])
         
         self.clip_encoder = CLIPTextEncoder()
@@ -737,7 +737,7 @@ class MSG_MMAN(MessagePassing):
         value_3d = prob_3d.reshape_as(v) * v
         
         if self.use_text_attention:
-            att_text = self.nn_att_text(torch.cat([q, t], dim=1))  # MLP_att(ρ_i || ρ_ij || ρ_text)
+            att_text = self.nn_att_text(torch.cat([q, k, t], dim=1))  # MLP_att(ρ_i || ρ_ij || ρ_text)
             prob_text = torch.nn.functional.softmax(att_text/self.temperature, dim=1)
             prob_text = self.dropout(prob_text)
             value_text = prob_text.reshape_as(v) * v
@@ -1040,8 +1040,8 @@ class MSG_MMAN_Edge_Update(MessagePassing):
                            self.dim_node_proj+self.dim_edge_proj,
                            self.dim_edge_proj])
         
-        self.nn_att_text = MLP([self.dim_node_proj+self.dim_edge_proj, 
-                               self.dim_node_proj+self.dim_edge_proj,
+        self.nn_att_text = MLP([self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj, 
+                               self.dim_node_proj+self.dim_edge_proj+self.dim_edge_proj,
                                self.dim_edge_proj])
         
         self.clip_encoder = CLIPTextEncoder()
@@ -1144,7 +1144,7 @@ class MSG_MMAN_Edge_Update(MessagePassing):
         value_3d = prob_3d.reshape_as(v) * v
         
         if self.use_text_attention:
-            att_text = self.nn_att_text(torch.cat([q, t], dim=1))  # MLP_att(ρ_i || ρ_ij || ρ_text)
+            att_text = self.nn_att_text(torch.cat([q, k, t], dim=1))  # MLP_att(ρ_i || ρ_ij || ρ_text)
             prob_text = torch.nn.functional.softmax(att_text/self.temperature, dim=1)
             prob_text = self.dropout(prob_text)
             value_text = prob_text.reshape_as(v) * v
