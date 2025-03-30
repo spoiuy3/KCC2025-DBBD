@@ -184,8 +184,8 @@ class Trainer_SGFN(BaseTrainer, EvalInst):
         self.calc_node_loss(logs, node_cls, gt_node, self.w_node_cls)
 
         ''' 2. edge class loss '''
-        print("edge: ", edge_cls)
-        print("gt: ", gt_edge)
+        print("edge: ", len(edge_cls))
+        print("gt: ", len(gt_edge))
         if edge_cls is not None:
             self.calc_edge_loss(logs, edge_cls, gt_edge, self.w_edge_cls)
 
