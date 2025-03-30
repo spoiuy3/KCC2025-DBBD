@@ -1,7 +1,7 @@
 inherit_from: [configs/dataset/config_base_3RScan_full_l160.yaml,configs/method/config_base_3DSSG_FAN.yaml]
 model:
  method: mman
- multi_rel: false # multiple relationship 
+ multi_rel: true # multiple relationship 
  gnn:
   method: mman_edge_update
 wandb:
