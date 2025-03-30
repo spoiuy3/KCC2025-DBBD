@@ -19,7 +19,7 @@ model:
 #   with_bn: false
 #   dropout: 0.3
 training:
-  lambda_attn_reg: 0.1
+  lambda_attn_reg: 1
 data:
   load_images: false
   load_points: true
