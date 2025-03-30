@@ -710,7 +710,7 @@ class MSG_MMAN(MessagePassing):
         
         text_embeddings = torch.stack(text_embeddings).to(x.device)
         
-        proj_text_embeddings = self.proj_text(text_embeddings)
+        proj_text_embeddings = self.proj_text(text_embeddings.float())
         
         node_feature, edge_feature, probs_3d, probs_text, kl_divs = self.propagate(
             edge_index, x=x, edge_feature=edge_feature, 
@@ -1098,7 +1098,7 @@ class MSG_MMAN_Edge_Update(MessagePassing):
         
         text_embeddings = torch.stack(text_embeddings).to(x.device)
         
-        proj_text_embeddings = self.proj_text(text_embeddings)
+        proj_text_embeddings = self.proj_text(text_embeddings.float())
         
         node_feature, edge_feature, probs_3d, probs_text, kl_divs = self.propagate(
             edge_index, x=x, edge_feature=edge_feature, 
