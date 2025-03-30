@@ -166,7 +166,7 @@ class Trainer_MMAN(BaseTrainer, EvalInst):
         # print('gt_rel.sum():',gt_rel.sum())
 
         ''' make forward pass through the network '''
-        node_cls, edge_cls, probs_3d, probs_text, kl_divs = self.model(data)
+        node_cls, edge_cls, kl_divs = self.model(data)
 
         ''' calculate loss '''
         logs['loss'] = 0
