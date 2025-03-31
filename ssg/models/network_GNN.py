@@ -691,13 +691,15 @@ class MSG_MMAN(MessagePassing):
         edge_feature = data['node', 'to', 'node'].x
         edge_class_indices = data['node', 'to', 'node'].y
         
+        if edge_class_indices.numbel() > 1: # multi-label (one-hot vector processing)
+            edge_class_indices = edge_class_indices.argmax(dim=1)
+        
         edge_index = data['node', 'to', 'node'].edge_index
         
         src_indices = edge_index[0]
         dst_indices = edge_index[1]
         
         text_embeddings = []
-        print("edge: ", edge_class_indices)
         for i in range(len(edge_class_indices)):
             src_idx = src_indices[i]
             dst_idx = dst_indices[i]
@@ -1086,8 +1088,7 @@ class MSG_MMAN_Edge_Update(MessagePassing):
         dst_indices = edge_index[1]
         
         text_embeddings = []
-        print("edge: ", edge_class_indices)
-        print("edge2: ", edge_index)
+
         for i in range(len(edge_class_indices)):
             src_idx = src_indices[i]
             dst_idx = dst_indices[i]
