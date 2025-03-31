@@ -697,6 +697,7 @@ class MSG_MMAN(MessagePassing):
         dst_indices = edge_index[1]
         
         text_embeddings = []
+        print("edge: ", edge_class_indices)
         for i in range(len(edge_class_indices)):
             src_idx = src_indices[i]
             dst_idx = dst_indices[i]
@@ -1085,6 +1086,7 @@ class MSG_MMAN_Edge_Update(MessagePassing):
         dst_indices = edge_index[1]
         
         text_embeddings = []
+        print("edge: ", edge_class_indices)
         for i in range(len(edge_class_indices)):
             src_idx = src_indices[i]
             dst_idx = dst_indices[i]
