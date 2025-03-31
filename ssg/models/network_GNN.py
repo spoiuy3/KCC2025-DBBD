@@ -691,7 +691,7 @@ class MSG_MMAN(MessagePassing):
         edge_feature = data['node', 'to', 'node'].x
         edge_class_indices = data['node', 'to', 'node'].y
         
-        if edge_class_indices.numel() > 1: # multi-label (one-hot vector processing)
+        if edge_class_indices.dim() > 1: # multi-label (one-hot vector processing)
             edge_class_indices = edge_class_indices.argmax(dim=1)
         
         edge_index = data['node', 'to', 'node'].edge_index
