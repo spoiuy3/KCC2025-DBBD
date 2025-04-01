@@ -1262,9 +1262,9 @@ class MSG_MMAN_BI(MessagePassing):
                  use_text_attention: bool = True,
                  use_bn: bool = True,
                  aggr='max',
-                 attn_dropout: float = 0.3,
+                 attn_dropout: float = 0.1,
                  flow: str = 'target_to_source',
-                 use_distance_mask: bool = True):
+                 use_distance_mask: bool = False):
         super().__init__(aggr=aggr, flow=flow)
         assert dim_node % num_heads == 0
         assert dim_edge % num_heads == 0
