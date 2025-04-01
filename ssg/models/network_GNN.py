@@ -1322,7 +1322,7 @@ class MSG_MMAN_BI(MessagePassing):
         if edge_class_indices.dim() > 1: # multi-label (one-hot vector processing)
             edge_class_indices = edge_class_indices.argmax(dim=1)
         
-        node_positions = data['node_pose']
+        node_positions = data['node_pos']
         edge_index = data['node', 'to', 'node'].edge_index
         
         row, col = edge_index
