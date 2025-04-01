@@ -690,20 +690,11 @@ class MSG_MMAN(MessagePassing):
         
         edge_feature = data['node', 'to', 'node'].x
         edge_class_indices = data['node', 'to', 'node'].y
-        
-        torch.set_printoptions(threshold=float('inf'))
-        print("1: ", edge_class_indices)
-        print("1: ", edge_class_indices.size())
-        
+                
         if edge_class_indices.dim() > 1: # multi-label (one-hot vector processing)
             edge_class_indices = edge_class_indices.argmax(dim=1)
         
         edge_index = data['node', 'to', 'node'].edge_index
-        
-        #print("1: ", edge_class_indices)
-        print("2: ", edge_index)
-        #print("1: ", edge_class_indices.size())
-        print("2: ", edge_index.size())
         
         src_indices = edge_index[0]
         dst_indices = edge_index[1]
@@ -1273,7 +1264,7 @@ class MSG_MMAN_BI(MessagePassing):
                  aggr='max',
                  attn_dropout: float = 0.3,
                  flow: str = 'target_to_source',
-                 use_distance_mask: bool = False):
+                 use_distance_mask: bool = True):
         super().__init__(aggr=aggr, flow=flow)
         assert dim_node % num_heads == 0
         assert dim_edge % num_heads == 0
