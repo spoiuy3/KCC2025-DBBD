@@ -1395,8 +1395,8 @@ class MSG_MMAN_BI(MessagePassing):
             incoming_edges[j].append((idx, i))
         
         updated_node, updated_edge, probs_3d, probs_text, kl_divs = self.propagate(
-            proj_text_embeddings,
             edge_index, 
+            text_embedding = proj_text_embeddings,
             x=x, 
             edge_feature=edge_feature,
             reverse_edge_feature=reverse_edge_feature,
