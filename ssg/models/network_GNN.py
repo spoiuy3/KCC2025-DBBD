@@ -1498,7 +1498,7 @@ class MSG_MMAN_BI(MessagePassing):
         return inputs
 
     def update(self, inputs, x_ori):
-        updated_node = self.update_node(torch.cat([x_ori, inputs[0]], dim=1))
+        updated_node = self.nn_node_update(torch.cat([x_ori, inputs[0]], dim=1))
         
         prob_3d = inputs[2]
         prob_text = inputs[3]
