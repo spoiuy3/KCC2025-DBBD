@@ -1506,7 +1506,7 @@ class MSG_MMAN_BI(MessagePassing):
         
         return updated_node, inputs[1], prob_3d, prob_text, kl_div
 
-class MultiModalAttenNetworkLayers_BI(torch.nn.Module):
+class MultiModalBIAttenNetworkLayers(torch.nn.Module):
     def __init__(self, **kwargs):
         super().__init__()
         self.num_layers = kwargs['num_layers']
