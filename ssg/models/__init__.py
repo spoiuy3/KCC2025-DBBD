@@ -20,4 +20,5 @@ gnn_list = {
     'jointgnn': JointGNN,
     'mman': MultiModalAttenNetworkLayers,
     'mman_edge_update': MultiModalAttenNetworkLayers_Edge_Update,
+    'mman_bi': MultiModalBIAttenNetworkLayers,
 }
