@@ -690,11 +690,18 @@ class MSG_MMAN(MessagePassing):
         
         edge_feature = data['node', 'to', 'node'].x
         edge_class_indices = data['node', 'to', 'node'].y
+        
+        print("Edge GT: ", edge_class_indices)
                 
         if edge_class_indices.dim() > 1: # multi-label (one-hot vector processing)
             edge_class_indices = edge_class_indices.argmax(dim=1)
         
         edge_index = data['node', 'to', 'node'].edge_index
+        
+        print("Edge index: ", edge_index)
+        print(edge_class_indices.size())
+        print(edge_index.size())
+        
         
         src_indices = edge_index[0]
         dst_indices = edge_index[1]
