@@ -2,7 +2,7 @@
 
 ![image](https://github.com/user-attachments/assets/2536c438-6cc7-42d5-b794-bca11061576d)
 
-[[paper]](#)  [[code]](https://github.com/spoiuy3/KCC2025-DBBD) This is a result of the 2025 Spring Semester Software Convergence Capstone Design project at Kyung Hee University.
+[[paper]](https://drive.google.com/file/d/1mC_HWy4MFyrqHHO1MDxL6Jj42wuY4Ss3/view?usp=drive_link)  [[code]](https://github.com/spoiuy3/KCC2025-DBBD) This is a result of the 2025 Spring Semester Software Convergence Capstone Design project at Kyung Hee University.
 ## 📖 Project Summary
 This project implements a novel graph neural network model for 3D Scene Graph Generation (3DSSG) that overcomes the limitations of prior methods using bi-directional edge updates and distance-based masking. Unlike traditional GNN-based approaches that only consider unidirectional context or ignore spatial proximity, our method enhances relational reasoning between objects in a point cloud scene by:
 
