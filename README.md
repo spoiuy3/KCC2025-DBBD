@@ -1,6 +1,6 @@
 # Distance-based Bi-directional Edge Update Graph Neural Network for 3D Scene Graph Generation
 
-![image](https://github.com/user-attachments/assets/2536c438-6cc7-42d5-b794-bca11061576d)
+<image src="demo.png" width="100%">
 
 [[paper]](https://drive.google.com/file/d/1mC_HWy4MFyrqHHO1MDxL6Jj42wuY4Ss3/view?usp=drive_link)  [[code]](https://github.com/spoiuy3/KCC2025-DBBD) This is a result of the 2025 Spring Semester Software Convergence Capstone Design project at Kyung Hee University.
 ## 📖 Project Summary
